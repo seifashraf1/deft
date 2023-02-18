@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/dfbuild/tools/constant-propagation",
+  "command": "/usr/bin/c++   -I/usr/lib/llvm-10/include -I/home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/llvm-dataflow-analysis/include   -std=c++17 -fno-rtti -Wall -g   -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/constant-propagation.dir/main.cpp.o -c /home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/llvm-dataflow-analysis/tools/constant-propagation/main.cpp",
+  "file": "/home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/llvm-dataflow-analysis/tools/constant-propagation/main.cpp"
+},
+{
+  "directory": "/home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/dfbuild/tools/filepolicy",
+  "command": "/usr/bin/c++   -I/usr/lib/llvm-10/include -I/home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/llvm-dataflow-analysis/include   -std=c++17 -fno-rtti -Wall -g   -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/filepolicy.dir/main.cpp.o -c /home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/llvm-dataflow-analysis/tools/filepolicy/main.cpp",
+  "file": "/home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/llvm-dataflow-analysis/tools/filepolicy/main.cpp"
+},
+{
+  "directory": "/home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/dfbuild/tools/futurefunctions",
+  "command": "/usr/bin/c++   -I/usr/lib/llvm-10/include -I/home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/llvm-dataflow-analysis/include   -std=c++17 -fno-rtti -Wall -g   -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -o CMakeFiles/futurefunctions.dir/main.cpp.o -c /home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/llvm-dataflow-analysis/tools/futurefunctions/main.cpp",
+  "file": "/home/g1f/Desktop/basant_workspace/llvm_dataflow_repo/llvm-dataflow-analysis/tools/futurefunctions/main.cpp"
+}
+]
