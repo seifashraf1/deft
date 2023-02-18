@@ -1,4 +1,6 @@
 # GPU-IFDS
 A GPU-based static analysis framework.
 
-command: clang++-9 -g -O3 main.cu `llvm-config-9 --cxxflags --ldflags --libs` --cuda-gpu-arch=sm_35 -std=c++17 -o main
+commands: 
+cd /tools/constant-propagation
+clang++-9 -g -O3 main.cu `llvm-config-9 --cxxflags --ldflags --libs` --cuda-gpu-arch=sm_35 -std=c++17 -o main
