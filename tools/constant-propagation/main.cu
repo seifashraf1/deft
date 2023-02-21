@@ -19,7 +19,7 @@
 #include <string>
 #include <cuda.h>
 
-#include "/home/g1f/Documents/deft/include/DataflowAnalysis.h"
+#include "/home/g1f/Documents/deft/include/DataflowAnalysis_parallel_copy.cuh"
 
 
 using namespace llvm;
@@ -253,14 +253,22 @@ main(int argc, char** argv) {
   using Value    = ConstantValue;
   using Transfer = ConstantTransfer;
   using Meet     = ConstantMeet;
-  using Analysis = analysis::DataflowAnalysis<Value, Transfer, Meet>;
-  Analysis analysis{*module, mainFunction};
-  auto results = analysis.computeDataflow();
-  for (auto& [context, contextResults] : results) {
-    for (auto& [function, functionResults] : contextResults) {
-      printConstantArguments(functionResults);
-    }
-  }
+  // using Analysis = analysis::DataflowAnalysis<Value, Transfer, Meet>;
+
+  dim3 gridDim(1);
+  dim3 blockDim(1);
+
+  cudaDeviceSetLimit(cudaLimitDevRuntimeSyncDepth, 8); // Set the maximum recursion depth.
+  cudaDeviceSetLimit(cudaLimitDevRuntimePendingLaunchCount, 65535); // Set the maximum pending launches.
+  
+  analysis::ComputeDataflowKernel<Value, Transfer, Meet><<<gridDim, blockDim>>>(*module, mainFunction);
+  // Analysis analysis{*module, mainFunction};
+  // auto results = analysis.computeDataflow();
+  // for (auto& [context, contextResults] : results) {
+  //   for (auto& [function, functionResults] : contextResults) {
+  //     printConstantArguments(functionResults);
+  //   }
+  // }
 
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;

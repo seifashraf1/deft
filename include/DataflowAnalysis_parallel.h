@@ -1,4 +1,3 @@
-
 #ifndef DATAFLOW_ANALYSIS_H
 #define DATAFLOW_ANALYSIS_H
 
@@ -44,7 +43,6 @@ struct DenseMapInfo<std::array<llvm::Instruction*, Size>> {
     return lhs == rhs;
   }
 };
-
 
 }
 
@@ -299,6 +297,7 @@ template <typename AbstractValue,
           typename Meet,
           typename Direction=Forward,
           unsigned long ContextSize=2ul>
+
 class DataflowAnalysis {
 public:
   using State   = AbstractState<AbstractValue>;
@@ -324,8 +323,7 @@ public:
 
   // computeDataflow collects the dataflow facts for all instructions
   // in the program reachable from the entryPoints passed to the constructor.
-  AllResults
-  computeDataflow() {
+  AllResults computeDataflow() {
     while (!contextWork.empty()) {
       auto [context, function] = contextWork.take();
       computeDataflow(*function, context);
@@ -334,14 +332,13 @@ public:
     return allResults;
   }
 
-  // computeDataflow collects the dataflowfacts for all instructions
-  // within Function f with the associated execution context. Functions whose
-  // results are required for the analysis of f will be transitively analyzed.
-  DataflowResult<AbstractValue>
-  computeDataflow(llvm::Function& f, const Context& context) {
-    active.insert({context, &f});
 
-    // First compute the initial outgoing state of all instructions
+
+
+
+
+  __global__ void computeDataflowKernel(llvm::Function& f, const Context& context) {
+    active.insert({context, &f});
     FunctionResults results = allResults.FindAndConstruct(context).second
                                         .FindAndConstruct(&f).second;
     if (results.find(getSummaryKey(f)) == results.end()) {
@@ -378,11 +375,11 @@ public:
       for (auto& i : Direction::getInstructions(*bb)) {
         llvm::CallSite cs(&i);
         if (isAnalyzableCall(cs)) {
-          analyzeCall(cs, state, context);
+          analyzeCallKernel<<<1,1>>>(cs, state, context);
         } else {
           applyTransfer(i, state);
         }
-//meet.printState(llvm::outs(),state);
+      //meet.printState(llvm::outs(),state);
         results[&i] = state;
       }
 
@@ -416,6 +413,23 @@ public:
 
     active.erase({context, &f});
     return results;
+
+  }
+
+
+
+
+  // computeDataflow collects the dataflowfacts for all instructions
+  // within Function f with the associated execution context. Functions whose
+  // results are required for the analysis of f will be transitively analyzed.
+  DataflowResult<AbstractValue>computeDataflow(llvm::Function& f, const Context& context) {
+    dim3 gridDim(1);
+    dim3 blockDim(1);
+
+    cudaDeviceSetLimit(cudaLimitDevRuntimeSyncDepth, 8); // Set the maximum recursion depth.
+    cudaDeviceSetLimit(cudaLimitDevRuntimePendingLaunchCount, 65535); // Set the maximum pending launches.
+    
+    computeDataflowKernel<<<gridDim, blockDim>>>(f, context);
   }
 
   llvm::Function*
@@ -432,6 +446,36 @@ public:
     auto* called = getCalledFunction(cs);
     return called && !called->isDeclaration();
   }
+
+
+  __global__ void analyzeCallKernel(llvm::CallSite cs, State& state, const Context& context) {
+    Context newContext;
+    if (newContext.size() > 0) {
+      std::copy(context.begin() + 1, context.end(), newContext.begin());
+      newContext.back() = cs.getInstruction();
+    }
+
+    auto* caller  = cs.getInstruction()->getFunction();
+    auto* callee  = getCalledFunction(cs);
+    auto toCall   = std::make_pair(newContext, callee);
+    auto toUpdate = std::make_pair(context, caller);
+
+    auto& calledState  = allResults[newContext][callee];
+    auto& summaryState = calledState[callee];
+    bool needsUpdate   = summaryState.size() == 0;
+
+    needsUpdate |= Direction::prepareSummaryState(cs, callee, state, summaryState, transfer, meet);
+
+    if (!active.count(toCall) && needsUpdate) {
+      //computeDataflow(*callee, newContext);
+      computeDataflowKernel<<<1,1>>>(*callee, newContext);
+    }
+
+    state[cs.getInstruction()] = calledState[callee][callee];
+    callers[toCall].insert(toUpdate);
+
+  }
+
 
   void
   analyzeCall(llvm::CallSite cs, State &state, const Context& context) {
