@@ -196,7 +196,7 @@ using AllResults = llvm::DenseMap<Context, ContextResults<AbstractValue>, Contex
 
 template <typename AbstractValue, typename Transfer, typename Meet, typename Direction=Forward>
 __device__
-AbstractValue meetOverPHI(State<AbstractValue>& state, const llvm::PHINode& phi) {
+AbstractValue meetOverPHI(State<AbstractValue>& state, llvm::PHINode& phi) {
     auto phiValue = AbstractValue();
     Meet meet;
     Transfer transfer;
@@ -335,7 +335,7 @@ DataflowResult<AbstractValue> ComputeDataflow(llvm::Function& f, const Context& 
     // Merge the state coming in from all predecessors including the function
     // summary (which contains arguments, etc.)
     auto state = mergeStateFromPredecessors<AbstractValue, Transfer, Meet>(bb, results);
-    mergeInState(state, results[getSummaryKey(f)]);
+    mergeInState<AbstractValue, Transfer, Meet>(state, results[getSummaryKey(f)]);
 
     // If we have already processed the block and no changes have been made to
     // the abstract input, we can skip processing the block. Otherwise, save
@@ -348,10 +348,10 @@ DataflowResult<AbstractValue> ComputeDataflow(llvm::Function& f, const Context& 
     // Propagate through all instructions in the block
     for (auto& i : Direction::getInstructions(*bb)) {
       llvm::CallSite cs(&i);
-      if (isAnalyzableCall(cs)) {
-        analyzeCall(cs, state, context, callers);
+      if (isAnalyzableCall<AbstractValue, Transfer, Meet>(cs)) {
+        analyzeCall<AbstractValue, Transfer, Meet>(cs, state, context, callers);
       } else {
-        applyTransfer(i, state);
+        applyTransfer<AbstractValue, Transfer, Meet>(i, state);
       }
       //meet.printState(llvm::outs(),state);
       results[&i] = state;
@@ -373,7 +373,7 @@ __global__ void ComputeDataflowKernel(llvm::Module& m, llvm::Function* entryPoin
 
   while (!contextWork.empty()) {
     auto [context, function] = contextWork.take();
-    computeDataflow<AbstractValue, Transfer, Meet>(*function, context, active. allResults, callers);
+    computeDataflow<AbstractValue, Transfer, Meet>(*function, context, active, allResults, callers);
   }
 
 }

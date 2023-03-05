@@ -261,6 +261,19 @@ main(int argc, char** argv) {
   cudaDeviceSetLimit(cudaLimitDevRuntimeSyncDepth, 8); // Set the maximum recursion depth.
   cudaDeviceSetLimit(cudaLimitDevRuntimePendingLaunchCount, 65535); // Set the maximum pending launches.
   
+  //wrapper for cuda
+  // int size1 = sizeof(std::unique_ptr<llvm::Module>);
+  // int size2 = sizeof(llvm::Function);
+
+  // std::unique_ptr<llvm::Module>* d_module;llvm::Function* d_mainFunction;
+
+  // cudaMalloc((void **)&d_module, size1);
+  // cudaMalloc((void **)&d_mainFunction,size2);
+
+  // cudaMemcpy(d_module, &module, size1, cudaMemcpyHostToDevice);
+  // cudaMemcpy(d_mainFunction, mainFunction, size2, cudaMemcpyHostToDevice);
+
+  // analysis::ComputeDataflowKernel<Value, Transfer, Meet><<<gridDim, blockDim>>>(d_module, d_mainFunction);
   analysis::ComputeDataflowKernel<Value, Transfer, Meet><<<gridDim, blockDim>>>(*module, mainFunction);
   // Analysis analysis{*module, mainFunction};
   // auto results = analysis.computeDataflow();
