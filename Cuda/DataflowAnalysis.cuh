@@ -196,10 +196,15 @@ using AllResults = llvm::DenseMap<Context, ContextResults<AbstractValue>, Contex
 
 template <typename AbstractValue, typename Transfer, typename Meet, typename Direction=Forward> 
 __global__
-void ComputeDataflowKernel(llvm::Function* f, Context* context,
+void ComputeDataflowKernel(llvm::Function* f,  const Context* context,
                                               llvm::DenseSet<ContextFunction>* active, AllResults<AbstractValue>* allResults,
                                               llvm::DenseMap<ContextFunction, llvm::DenseSet<ContextFunction>>* callers)
 {
+
+  // active->insert({*context,f});
+   
+  // FunctionResults<AbstractValue> results = allResults->FindAndConstruct(*context).second.FindAndConstruct(f).second;
+  // DenseMap<ArrayRef<llvm::Instruction *>, DenseMap<llvm::Function *, DenseMap<llvm::Value *, DenseMap<llvm::Value *, type-parameter-0-0> > >, DenseMapInfo<llvm::ArrayRef<llvm::Instruction *> > > *
   return;
 }
 
@@ -207,6 +212,7 @@ template <typename AbstractValue>
 using AllResults = llvm::DenseMap<Context, ContextResults<AbstractValue>, ContextMapInfo>;
 
 template <typename AbstractValue, typename Transfer, typename Meet, typename Direction=Forward> 
+
 AllResults<AbstractValue> ComputeDataflow(llvm::Module& m, llvm::ArrayRef<llvm::Function*> entryPoints) {
   AllResults<AbstractValue> allResults;
   ContextWorklist contextWork;  // worklist
@@ -224,7 +230,7 @@ AllResults<AbstractValue> ComputeDataflow(llvm::Module& m, llvm::ArrayRef<llvm::
   AllResults<AbstractValue>* d_allResults;
   llvm::DenseMap<ContextFunction,llvm::DenseSet<ContextFunction>>* d_callers;
 
-  
+
 
   cudaMalloc((void **)&d_f, sizeof(llvm::Function));
   cudaMalloc((void **)&d_context, sizeof(Context ));
@@ -232,11 +238,13 @@ AllResults<AbstractValue> ComputeDataflow(llvm::Module& m, llvm::ArrayRef<llvm::
   cudaMalloc((void **)&d_allResults, sizeof(AllResults<AbstractValue>));
   cudaMalloc((void **)&d_callers, sizeof(llvm::DenseMap<ContextFunction,llvm::DenseSet<ContextFunction>>));
 
+
+
   // Call kernel with all {context, function}
   auto front = contextWork.take();
   llvm::Function* cur_function = (front.second);
   Context* cur_context = &(front.first);
-
+FunctionResults<AbstractValue> results = allResults.FindAndConstruct(*cur_context).second.FindAndConstruct(cur_function).second;
   cudaMemcpy(d_f, &cur_function, sizeof(llvm::Instruction), cudaMemcpyHostToDevice);
   cudaMemcpy(d_context, &cur_context, sizeof(llvm::Instruction), cudaMemcpyHostToDevice);
 

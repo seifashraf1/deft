@@ -6,6 +6,8 @@
 #include <deque>
 #include <numeric>
 
+#include<iostream>
+using namespace std;
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/PostOrderIterator.h"
@@ -326,8 +328,10 @@ public:
   // in the program reachable from the entryPoints passed to the constructor.
   AllResults
   computeDataflow() {
+ 
     while (!contextWork.empty()) {
-      auto [context, function] = contextWork.take();
+      auto [context, function] = contextWork.take(); //this should be parallized
+      // we need to analyze the function one by one and if we found callee in a function add them to the worklist 
       computeDataflow(*function, context);
     }
 
@@ -344,6 +348,7 @@ public:
     // First compute the initial outgoing state of all instructions
     FunctionResults results = allResults.FindAndConstruct(context).second
                                         .FindAndConstruct(&f).second;
+
     if (results.find(getSummaryKey(f)) == results.end()) {
       for (auto& i : llvm::instructions(f)) {
         results.FindAndConstruct(&i);
@@ -352,6 +357,8 @@ public:
 
     // Add all blocks to the worklist in topological order for efficiency
     auto traversal = Direction::getFunctionTraversal(f);
+
+    // the worklist that should contain al the functions (assuming each funtoin is a block )
     BasicBlockWorklist work(traversal.begin(), traversal.end());
 
     while (!work.empty()) {

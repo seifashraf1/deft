@@ -19,6 +19,7 @@
 #include <string>
 #include <cuda.h>
 
+
 #include "/home/g1f/zaieda/llvm-dataflow-analysis/include/DataflowAnalysis.h"
 
 
@@ -256,11 +257,11 @@ main(int argc, char** argv) {
   using Analysis = analysis::DataflowAnalysis<Value, Transfer, Meet>;
   Analysis analysis{*module, mainFunction};
   auto results = analysis.computeDataflow();
-  for (auto& [context, contextResults] : results) {
-    for (auto& [function, functionResults] : contextResults) {
-      printConstantArguments(functionResults);
-    }
-  }
+  // for (auto& [context, contextResults] : results) {
+  //   for (auto& [function, functionResults] : contextResults) {
+  //     printConstantArguments(functionResults);
+  //   }
+  // }
 
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
