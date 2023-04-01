@@ -600,13 +600,13 @@ private:
   // These property objects determine the behavior of the dataflow analysis.
   // They should by replaced by concrete implementation classes on a per
   // analysis basis.
-  static Meet meet;
-  static Transfer transfer;
+  inline static Meet meet;
+  inline static Transfer transfer;
 
-  static AllResults allResults;
-  static ContextWorklist contextWork;
-  static llvm::DenseMap<ContextFunction, llvm::DenseSet<ContextFunction>> callers;
-  static llvm::DenseSet<ContextFunction> active;
+  inline static AllResults allResults;
+  inline static ContextWorklist contextWork;
+  inline static llvm::DenseMap<ContextFunction, llvm::DenseSet<ContextFunction>> callers;
+  inline static llvm::DenseSet<ContextFunction> active;
 
 
   static llvm::Value*
