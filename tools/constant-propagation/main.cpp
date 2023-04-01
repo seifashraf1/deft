@@ -17,9 +17,9 @@
 #include <bitset>
 #include <memory>
 #include <string>
-#include <cuda.h>
 
 #include "/home/g1/deft/include/DataflowAnalysis.h"
+#include "/home/g1/deft/include/DataflowAnalysisMultithreading.h"
 
 
 using namespace llvm;
