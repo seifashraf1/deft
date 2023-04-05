@@ -21,7 +21,7 @@
 
    By tege@sics.se, Torbjorn Granlund, advised by rms, Richard Stallman.  */
 
-#include <config.h>
+#include </home/g1/Documents/coreutils/lib/config.h>
 
 #include <stdio.h>
 #include <getopt.h>
@@ -32,11 +32,11 @@
 #endif
 #include <sys/ioctl.h>
 
-#include "system.h"
+#include "/home/g1/Documents/coreutils/src/system.h"
 #include "alignalloc.h"
 #include "idx.h"
-#include "ioblksize.h"
-#include "die.h"
+#include "/home/g1/Documents/coreutils/src/ioblksize.h"
+#include "/home/g1/Documents/coreutils/src/die.h"
 #include "error.h"
 #include "fadvise.h"
 #include "full-write.h"

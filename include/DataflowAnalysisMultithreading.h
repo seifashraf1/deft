@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <mutex>
 #include <vector>
+#include<iostream>
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
@@ -350,6 +351,7 @@ public:
   computeDataflow() {
     while (!contextWork.empty()) {
       int worklist_size = contextWork.size();
+      std::cout<< "Here " << worklist_size <<"\n";
       pthread_t* tid;
       tid = new pthread_t[worklist_size];
       // ComputePair* cp[worklist_size];
@@ -383,14 +385,17 @@ public:
 
     // First compute the initial outgoing state of all instructions
     // We are sure that all {context, function} pairs in the worklist are unique from the set
-    // so no need to use mutex here
+    allResults_mtx.lock();
     FunctionResults results = allResults.FindAndConstruct(context).second
                                         .FindAndConstruct(&f).second;
+    allResults_mtx.unlock();
+    std::cout<< "Done declarations\n";
     if (results.find(getSummaryKey(f)) == results.end()) {
       for (auto& i : llvm::instructions(f)) {
         results.FindAndConstruct(&i);
       }
     }
+    
 
     // Add all blocks to the worklist in topological order for efficiency
     auto traversal = Direction::getFunctionTraversal(f);
