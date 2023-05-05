@@ -1,0 +1,8 @@
+add r9 r10 r11
+addi r12 r9 r8
+be r8 r8 2
+neg r13 r12
+add r13 r15 r12
+div f13 r15 r12
+add r14 r15 5
+add r14 r13 r12

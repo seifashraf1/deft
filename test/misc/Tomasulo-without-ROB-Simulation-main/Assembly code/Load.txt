@@ -1,0 +1,7 @@
+lw r2 0(r1)
+addi r2 r0 10
+add r2 r3 r4
+jalr r3
+addi r2 r2 20
+add r2 r3 r5
+ret

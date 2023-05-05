@@ -1,0 +1,5 @@
+add r9 r10 r11
+addi r12 r9 r8
+neg r13 r12
+div r13 315 r12
+sub r13 r15 r12

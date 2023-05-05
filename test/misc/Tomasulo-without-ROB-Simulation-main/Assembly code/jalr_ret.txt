@@ -1,0 +1,9 @@
+addi r2 r0 10
+jalr r4
+addi r3 r0 20
+add r2 r3 r4
+addi r2 r5 90
+add r15 r15 r14
+addi r4 r0 80
+addi r3 r4 20
+ret

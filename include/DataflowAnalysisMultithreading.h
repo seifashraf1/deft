@@ -10,6 +10,7 @@
 #include <mutex>
 #include <vector>
 #include<iostream>
+#include<set>
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
@@ -357,14 +358,19 @@ public:
       // ComputePair* cp[worklist_size];
       std::vector<ComputePair> cp;
       int context_idx = 0;
-      while(!contextWork.empty()){
+      llvm::DenseSet<llvm::Function*> current_set;
+      //ContextWorklist temp_worklist;
+      while(!contextWork.empty() && context_idx < 4){
         auto [context, function] = contextWork.take();
         // cp[context_idx] = new ComputePair(*function, context);
+        if(current_set.count(function)) continue;
+        current_set.insert(function);
         cp.push_back(ComputePair(*function, context));
         pthread_create(&(tid[context_idx]), NULL, computeDataflow, (void*) &cp[context_idx]);
         context_idx++;
       }
-      for(int i=0; i<worklist_size; i++) pthread_join(tid[i], NULL);
+      current_set.clear();
+      for(int i=0; i<context_idx; i++) pthread_join(tid[i], NULL);
     }
 
     return allResults;
@@ -388,13 +394,14 @@ public:
     allResults_mtx.lock();
     FunctionResults results = allResults.FindAndConstruct(context).second
                                         .FindAndConstruct(&f).second;
-    allResults_mtx.unlock();
+    
     std::cout<< "Done declarations\n";
     if (results.find(getSummaryKey(f)) == results.end()) {
       for (auto& i : llvm::instructions(f)) {
         results.FindAndConstruct(&i);
       }
     }
+    allResults_mtx.unlock();
     
 
     // Add all blocks to the worklist in topological order for efficiency
@@ -478,11 +485,15 @@ public:
   // Original Compute dataflow
   static DataflowResult<AbstractValue>
 computeDataflow(llvm::Function& f, const Context& context) {
+  active_mtx.lock();
   active.insert({context, &f});
+  active_mtx.unlock();
 
   // First compute the initial outgoing state of all instructions
+  allResults_mtx.lock();
   FunctionResults results = allResults.FindAndConstruct(context).second
                                       .FindAndConstruct(&f).second;
+  allResults_mtx.unlock();
   if (results.find(getSummaryKey(f)) == results.end()) {
     for (auto& i : llvm::instructions(f)) {
       results.FindAndConstruct(&i);
@@ -545,15 +556,20 @@ computeDataflow(llvm::Function& f, const Context& context) {
   // The overall results for the given function and context are updated if
   // necessary. Updating the results for this (function,context) means that
   // all callers must be updated as well.
+  allResults_mtx.lock();
   auto& oldResults = allResults[context][&f];
   if (!(oldResults == results)) {
     oldResults = results;
     for (auto& caller : callers[{context, &f}]) {
+      contextWork_mtx.lock();
       contextWork.add(caller);
+      contextWork_mtx.unlock();
     }
   }
-
+  allResults_mtx.unlock();
+  active_mtx.lock();
   active.erase({context, &f});
+  active_mtx.unlock();
   return results;
 }
 
